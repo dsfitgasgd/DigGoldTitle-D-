@@ -1,12 +1,23 @@
+import os
+from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 
 # 数据库URL
-ASYNC_DATABASE_URL = "mysql+aiomysql://root:root@localhost:3306/news_app?charset=utf8mb4"
+ASYNC_DATABASE_URL = os.getenv("DATABASE_URL") or URL.create(
+    "mysql+aiomysql",
+    username=os.getenv("MYSQL_USER", "root"),
+    password=os.getenv("MYSQL_PASSWORD", "root"),
+    host=os.getenv("MYSQL_HOST", "localhost"),
+    port=int(os.getenv("MYSQL_PORT", "3306")),
+    database=os.getenv("MYSQL_DATABASE", "news_app"),
+    query={"charset": "utf8mb4"},
+)
 
 # 创建异步引擎
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    echo=True,  # 可选：输出SQL日志
+    echo=os.getenv("SQL_ECHO", "false").lower() == "true",
+    pool_pre_ping=True,
     pool_size=10,  # 设置连接池中保持的持久连接数
     max_overflow=20  # 设置连接池允许创建的额外连接数
 )

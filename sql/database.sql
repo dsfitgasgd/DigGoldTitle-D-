@@ -1,4 +1,6 @@
 -- 新闻资讯应用数据库设计
+-- The file is UTF-8; explicitly set the import connection encoding.
+SET NAMES utf8mb4;
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS news_app DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

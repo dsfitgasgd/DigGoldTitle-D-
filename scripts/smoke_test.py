@@ -17,7 +17,9 @@ assert 'id="app"' in fetch("/")
 assert 'id="app"' in fetch("/news/detail/1"), "SPA route fallback failed"
 categories = json.loads(fetch("/api/news/categories"))
 assert categories["code"] == 200 and categories["data"], categories
+assert any("\u4e00" <= c <= "\u9fff" for item in categories["data"] for c in item["name"]), "Category Chinese text is corrupted"
 category_id = categories["data"][0]["id"]
 news = json.loads(fetch(f"/api/news/list?categoryId={category_id}&page=1&pageSize=10"))
 assert news["code"] == 200 and news["data"]["list"], news
+assert all(any("\u4e00" <= c <= "\u9fff" for c in item["title"]) for item in news["data"]["list"]), "Seeded news Chinese text is corrupted"
 print("PASS: frontend, health check, SPA route, API proxy, seeded database news")

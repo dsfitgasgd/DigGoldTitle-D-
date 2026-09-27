@@ -16,4 +16,6 @@
 !utils/*.py
 !cache/
 !cache/*.py
+!scripts/
+!scripts/repair_encoding.py
 **/__pycache__

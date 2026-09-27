@@ -101,6 +101,27 @@ docker compose up -d --no-build --wait
 
 ## 工程管理与发布
 
+### 中文数据编码修复
+
+初始化文件 `sql/database.sql` 已显式设置 `SET NAMES utf8mb4`，避免导入客户端按 Latin-1 解读中文。
+更新部署时必须同时分发最新的 `sql/` 和 `compose.yaml`；只更新应用镜像不会改变已经存在的数据库内容。
+不需要删除数据库卷或重新导入全部数据。
+
+旧数据库出现乱码时，先只读检查，再执行带备份的修复（新版后端镜像自带脚本）：
+
+```powershell
+docker compose exec -T backend python scripts/repair_encoding.py
+docker compose exec -T backend python scripts/repair_encoding.py --apply --backup /tmp/encoding-backup.json
+New-Item -ItemType Directory -Force .backups
+docker compose cp backend:/tmp/encoding-backup.json .backups/encoding-backup.json
+python scripts/smoke_test.py
+```
+
+备份包含修改字段的原值和修复值，请在删除容器前复制出来并妥善保存；`.backups/` 不提交到 Git。
+修复只转换能无损还原的乱码文本，保留新闻 ID、阅读数和用户数据，并清除项目新闻缓存。
+再次检查应报告 `Reversible corrupted fields: 0`。备份路径必须是一个尚不存在的新文件。
+参考 [MySQL 连接字符集说明](https://dev.mysql.com/doc/mysql-g11n-excerpt/8.0/en/charset-connection.html)。
+
 Git 分支、提交、CI、版本构建和手动上传 Docker Hub 的流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 推荐使用 ./scripts/build.ps1 构建开发镜像；正式版本构建要求工作区已提交。
 镜像名称通过 DOCKERHUB_NAMESPACE、IMAGE_TAG 配置，OCI 标签记录版本和 Git 提交。
